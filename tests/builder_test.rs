@@ -19,4 +19,8 @@ fn builder_creates_user() {
     assert_eq!(user.name, String::from("Matieuu"));
     assert_eq!(user.age, 20);
     assert_eq!(user.male, Some(true));
+
+    let user = User::builder().age(20).male(Some(true)).build();
+
+    assert_eq!(user.is_err(), true);
 }
