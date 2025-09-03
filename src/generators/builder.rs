@@ -17,34 +17,32 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
         _ => unimplemented!("Builder supports only structs"),
     };
 
-    let builder_fields = fields.iter().map(|f| {
-        let ident = f.ident.as_ref().unwrap();
-        let ty = &f.ty;
-        quote! { #ident: ::core::option::Option<#ty> }
-    });
+    let mut builder_fields: Vec<TokenStream> = Vec::new();
+    let mut build_fields: Vec<TokenStream> = Vec::new();
+    let mut builder_setters: Vec<TokenStream> = Vec::new();
+    let mut builder_init: Vec<TokenStream> = Vec::new();
 
-    let builder_init = fields.iter().map(|f| {
-        let ident = f.ident.as_ref().unwrap();
-        quote! { #ident: ::core::option::Option::None }
-    });
+    for field in fields {
+        let ident = &field.ident;
+        let ty = &field.ty;
 
-    let builder_setters = fields.iter().map(|f| {
-        let ident = f.ident.as_ref().unwrap();
-        let ty = &f.ty;
-        quote! {
+        builder_fields.push(quote! { #ident: ::core::option::Option<#ty> });
+        build_fields.push(quote! {
+            #ident: self.#ident.ok_or(concat!("Field `", stringify!(#ident), "` is missing"))?
+        });
+        builder_init.push(quote! { #ident: ::core::option::Option::None });
+        builder_setters.push(quote! {
             #struct_vis fn #ident(mut self, #ident: #ty) -> Self {
                 self.#ident = ::core::option::Option::Some(#ident);
                 self
             }
-        }
-    });
+        });
+    }
 
-    let build_fields = fields.iter().map(|f| {
-        let ident = f.ident.as_ref().unwrap();
-        quote! {
-            #ident: self.#ident.ok_or(concat!("Field `", stringify!(#ident), "` is missing"))?
-        }
-    });
+    let builder_fields = builder_fields.iter();
+    let build_fields = build_fields.iter();
+    let builder_setters = builder_setters.iter();
+    let builder_init = builder_init.iter();
 
     quote! {
         pub struct #builder_name {
