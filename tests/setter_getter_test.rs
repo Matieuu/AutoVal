@@ -4,7 +4,7 @@ use auto_val::{Getter, Setter};
 struct User {
     name: String,
     age: u8,
-    male: bool,
+    male: Option<bool>,
 }
 
 #[test]
@@ -13,9 +13,9 @@ fn builder_creates_user() {
 
     user.set_name(String::from("Matieuu"));
     user.set_age(20);
-    user.set_male(true);
+    user.set_male(Some(true));
 
     assert_eq!(user.name(), &String::from("Matieuu"));
     assert_eq!(user.age(), &20);
-    assert_eq!(user.male(), &true);
+    assert_eq!(user.male(), &Some(true));
 }

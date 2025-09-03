@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Attribute, LitStr, Result};
+use syn::{Attribute, GenericArgument, LitStr, PathArguments, Result, Type, TypePath};
 
 /// Parsuje atrybut w stylu `#[xyz(mod = "crate")]`, `#[xyz(mod = "super")]`,
 /// `#[xyz(mod = "self")]` albo `#[xyz(mod = "pub")]`.
@@ -43,4 +43,22 @@ pub fn parse_visibility_from(attrs: &[Attribute], attr_name: &str) -> Result<Opt
 /// Zwraca domyślną widoczność, jeśli brak atrybutu: `pub`.
 pub fn default_pub(vis_opt: Option<TokenStream>) -> TokenStream {
     vis_opt.unwrap_or_else(|| quote!(pub))
+}
+
+pub fn is_option(ty: &Type) -> bool {
+    if let Type::Path(TypePath { path, .. }) = ty {
+        if let Some(segment) = path.segments.last() {
+            if segment.ident == "Option" {
+                if let PathArguments::AngleBracketed(ref args) = segment.arguments {
+                    if args.args.len() == 1 {
+                        if let GenericArgument::Type(_) = &args.args[0] {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    false
 }
