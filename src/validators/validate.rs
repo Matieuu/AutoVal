@@ -17,7 +17,7 @@ pub fn check_field(field: &Field) -> TokenStream {
                 while let Some(token) = iter.next() {
                     match token {
                         TokenTree::Ident(ident) => {
-                            if ident.to_string() == "max"
+                            if ident == "max"
                                 && let Some(TokenTree::Punct(_)) = iter.next()
                                 && let Some(TokenTree::Literal(lit)) = iter.next()
                             {
