@@ -1,12 +1,16 @@
 use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{Data, DeriveInput, Fields};
+use quote::{format_ident, quote};
+use syn::{Data, DeriveInput, Fields, Ident};
 
-use crate::utils::{default_pub, parse_visibility_from};
+use crate::{
+    helpers::is_validated,
+    utils::{default_pub, parse_visibility_from},
+    validators::validate,
+};
 
 pub fn generate(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;
-    let builder_name = syn::Ident::new(&format!("{name}Builder"), name.span());
+    let builder_name = Ident::new(&format!("{name}Builder"), name.span());
     let struct_vis = default_pub(parse_visibility_from(&input.attrs, "builder").unwrap());
 
     let fields = match &input.data {
@@ -21,6 +25,8 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
     let mut build_fields: Vec<TokenStream> = Vec::new();
     let mut builder_setters: Vec<TokenStream> = Vec::new();
     let mut builder_init: Vec<TokenStream> = Vec::new();
+    let mut builder_validators: Vec<TokenStream> = Vec::new();
+    let mut validators_funcs: Vec<TokenStream> = Vec::new();
 
     for field in fields {
         let ident = &field.ident;
@@ -37,20 +43,27 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
                 self
             }
         });
+
+        if is_validated(input) {
+            validators_funcs.push(validate::check_field(field));
+            let func_name = format_ident!("validate_{}", ident.as_ref().unwrap());
+            builder_validators.push(quote! {
+                if let ::core::option::Option::Some(ref value) = self.#ident {
+                    #name::#func_name(value)?;
+                }
+            });
+        }
     }
 
-    let builder_fields = builder_fields.iter();
-    let build_fields = build_fields.iter();
-    let builder_setters = builder_setters.iter();
-    let builder_init = builder_init.iter();
-
     quote! {
-        pub struct #builder_name {
+        #struct_vis struct #builder_name {
             #( #builder_fields, )*
         }
 
         impl #builder_name {
             #struct_vis fn build(self) -> ::core::result::Result<#name, ::std::string::String> {
+                #( #builder_validators )*
+
                 let out = #name {
                     #( #build_fields, )*
                 };
@@ -67,6 +80,8 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
         }
 
         impl #name {
+            #( #validators_funcs )*
+
             #struct_vis fn builder() -> #builder_name {
                 ::core::default::Default::default()
             }

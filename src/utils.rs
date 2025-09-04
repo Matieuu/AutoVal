@@ -1,6 +1,6 @@
 use proc_macro2::TokenStream;
-use quote::quote;
-use syn::{Attribute, GenericArgument, LitStr, PathArguments, Result, Type, TypePath};
+use quote::{ToTokens, quote};
+use syn::{Attribute, LitInt, LitStr, Result, Type, parse_str};
 
 /// Parsuje atrybut w stylu `#[xyz(mod = "crate")]`, `#[xyz(mod = "super")]`,
 /// `#[xyz(mod = "self")]` albo `#[xyz(mod = "pub")]`.
@@ -23,10 +23,11 @@ pub fn parse_visibility_from(attrs: &[Attribute], attr_name: &str) -> Result<Opt
                     "crate" => quote!(pub(crate)),
                     "super" => quote!(pub(super)),
                     "self" => quote!(pub(self)),
+                    "none" => quote! {},
                     // próbujemy ogólne `pub(#tokens)` jeśli ktoś poda np. "in crate::foo"
                     _ => {
                         let inner: TokenStream = s.parse().map_err(|_| {
-                            syn::Error::new(lit.span(), "Niepoprawna wartość dla `mod`")
+                            syn::Error::new(lit.span(), "Non-standard value for `mod`")
                         })?;
                         quote!(pub(#inner))
                     }
@@ -45,20 +46,36 @@ pub fn default_pub(vis_opt: Option<TokenStream>) -> TokenStream {
     vis_opt.unwrap_or_else(|| quote!(pub))
 }
 
-pub fn is_option(ty: &Type) -> bool {
-    if let Type::Path(TypePath { path, .. }) = ty {
-        if let Some(segment) = path.segments.last() {
-            if segment.ident == "Option" {
-                if let PathArguments::AngleBracketed(ref args) = segment.arguments {
-                    if args.args.len() == 1 {
-                        if let GenericArgument::Type(_) = &args.args[0] {
-                            return true;
-                        }
-                    }
-                }
-            }
+pub fn literal_for_type(ty: &str, lit: &LitInt) -> proc_macro2::TokenStream {
+    match ty {
+        // unsigned ints
+        "u8" | "u16" | "u32" | "u64" | "u128" | "usize" => {
+            let value: u128 = lit.base10_parse().unwrap();
+            let ty_parsed: Type = parse_str(ty).unwrap();
+            quote! { #value as #ty_parsed }
+        }
+
+        // signed ints
+        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" => {
+            let value: i128 = lit.base10_parse().unwrap();
+            let ty_parsed: Type = parse_str(ty).unwrap();
+            quote! { #value as #ty_parsed }
+        }
+
+        // floats
+        "f32" => {
+            let value: f32 = lit.base10_parse().unwrap();
+            quote! { #value as f32 }
+        }
+        "f64" => {
+            let value: f64 = lit.base10_parse().unwrap();
+            quote! { #value as f64 }
+        }
+
+        // fallback: zostaw jak jest (np. do warninga)
+        _ => {
+            let raw = lit.to_token_stream();
+            quote! { #raw }
         }
     }
-
-    false
 }

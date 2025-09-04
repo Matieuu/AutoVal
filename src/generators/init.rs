@@ -2,7 +2,10 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput};
 
-use crate::utils::{default_pub, is_option, parse_visibility_from};
+use crate::{
+    helpers::is_option,
+    utils::{default_pub, parse_visibility_from},
+};
 
 pub fn generate(input: &DeriveInput) -> TokenStream {
     let name = &input.ident;

@@ -8,7 +8,7 @@
 
 - Generowanie getterów i setterów dla struct
 - Builder dla ergonomicznego tworzenia obiektów
-- Deklaratywna walidacja pól (min, max, regex, required)
+- Deklaratywna walidacja pól (min, max, regex)
 - Obsługa walidacji podczas budowy obiektu
 - Możliwość rozbudowy o async walidatory
 
