@@ -1,11 +1,14 @@
-use proc_macro2::TokenStream;
+use proc_macro2::{TokenStream, TokenTree};
 use quote::{ToTokens, quote};
-use syn::{Attribute, LitInt, LitStr, Result, Type, parse_str};
+use syn::{Attribute, LitInt, LitStr, Type, parse_str};
 
 /// Parsuje atrybut w stylu `#[xyz(mod = "crate")]`, `#[xyz(mod = "super")]`,
 /// `#[xyz(mod = "self")]` albo `#[xyz(mod = "pub")]`.
 /// Zwraca `Some(TokenStream)` z odpowiednim `pub(..)`. Brak -> None.
-pub fn parse_visibility_from(attrs: &[Attribute], attr_name: &str) -> Result<Option<TokenStream>> {
+pub fn parse_visibility_from(
+    attrs: &[Attribute],
+    attr_name: &str,
+) -> syn::Result<Option<TokenStream>> {
     let mut out: Option<TokenStream> = None;
 
     for attr in attrs {
@@ -77,5 +80,25 @@ pub fn literal_for_type(ty: &str, lit: &LitInt) -> proc_macro2::TokenStream {
             let raw = lit.to_token_stream();
             quote! { #raw }
         }
+    }
+}
+
+pub fn parse_field_attr_value(
+    iter: &mut proc_macro2::token_stream::IntoIter,
+    ident: &proc_macro2::Ident,
+    name: &str,
+) -> Result<proc_macro2::Literal, bool> {
+    if ident == name {
+        if let Some(TokenTree::Punct(_)) = iter.next() {
+            if let Some(TokenTree::Literal(lit)) = iter.next() {
+                Ok(lit)
+            } else {
+                Err(false)
+            }
+        } else {
+            Err(false)
+        }
+    } else {
+        Err(true)
     }
 }

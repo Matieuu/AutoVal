@@ -1,12 +1,12 @@
 use syn::{DeriveInput, GenericArgument, LitInt, PathArguments, Type, TypePath};
 
-pub fn is_string_type(ty: &syn::Type) -> bool {
+pub fn is_string_type(ty: &Type) -> bool {
     match ty {
-        syn::Type::Path(tp) => {
+        Type::Path(tp) => {
             let ident = &tp.path.segments.last().unwrap().ident;
             ident == "String"
         }
-        syn::Type::Reference(r) => {
+        Type::Reference(r) => {
             if let syn::Type::Path(tp) = &*r.elem {
                 tp.path.segments.last().unwrap().ident == "str"
             } else {
@@ -17,9 +17,9 @@ pub fn is_string_type(ty: &syn::Type) -> bool {
     }
 }
 
-pub fn is_numeric_type(ty: &syn::Type) -> bool {
+pub fn is_numeric_type(ty: &Type) -> bool {
     match ty {
-        syn::Type::Path(typepath) => {
+        Type::Path(typepath) => {
             let ident = &typepath.path.segments.last().unwrap().ident;
             matches!(
                 ident.to_string().as_str(),
@@ -82,37 +82,6 @@ pub fn is_option(ty: &Type) -> bool {
     false
 }
 
-// let mut res = false;
-// for attr in &input.attrs {
-//     if attr.path().is_ident("derive") {
-//         attr.parse_nested_meta(|meta| {
-//             if meta.path.is_ident("Validate") {
-//                 res = true;
-//             }
-//             Ok(())
-//         })
-//         .unwrap();
-//     }
-// }
-// res
-
-// for attr in &input.attrs {
-//     if attr.path().is_ident("derive") {
-//         // if let Meta::List(list) = &attr.meta {
-//         //     println!("{:#?}", list);
-//         // }
-
-//         // if let Ok(list) = attr.parse_args_with(parser) {
-//         //     for meta in list {
-//         //         if let Meta::Path(path) = meta {
-//         //             if path.is_ident("Validate") {
-//         //                 return true;
-//         //             }
-//         //         }
-//         //     }
-//         // }
-//     }
-// }
 pub fn is_validated(input: &DeriveInput) -> bool {
     input
         .attrs

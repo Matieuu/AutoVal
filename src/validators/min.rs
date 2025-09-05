@@ -9,12 +9,12 @@ use crate::{
 
 pub fn check(lit: &LitInt, ty: &Type, value: &Ident) -> TokenStream {
     if is_string_type(ty) {
-        let max_val: usize = lit
+        let min_val: usize = lit
             .base10_parse()
-            .expect("Invalid value in #[size(max = ...)] attribute");
+            .expect("Invalid value in #[size(min = ...)] attribute");
         quote! {
-            if #value.len() > #max_val {
-                return Err(format!("Field {} is too long (max {})", stringify!(#value), #max_val));
+            if #value.len() < #min_val {
+                return Err(format!("Field {} is too short (min {})", stringify!(#value), #min_val));
             }
         }
     } else if is_numeric_type(ty) {
@@ -25,10 +25,10 @@ pub fn check(lit: &LitInt, ty: &Type, value: &Ident) -> TokenStream {
                     compile_error!(concat!("Field ", stringify!(#value), " is incompatible with type ", #typename));
                 }
             } else {
-                let max_val = literal_for_type(&typename, lit);
+                let min_val = literal_for_type(&typename, lit);
                 quote! {
-                    if *#value > #max_val {
-                        return Err(format!("Field {} is too big (max {})", stringify!(#value), #max_val));
+                    if *#value < #min_val {
+                        return Err(format!("Field {} is too small (min {})", stringify!(#value), #min_val));
                     }
                 }
             }
@@ -37,7 +37,7 @@ pub fn check(lit: &LitInt, ty: &Type, value: &Ident) -> TokenStream {
         }
     } else {
         quote! {
-            compile_error!(concat!("Attribute #[size(max = ...)] has no effect on field `", stringify!(#value), "`"));
+            compile_error!(concat!("Attribute #[size(min = ...)] has no effect on field `", stringify!(#value), "`"));
         }
     }
 }
