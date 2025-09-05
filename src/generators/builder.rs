@@ -2,7 +2,10 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, Ident};
 
-use crate::{has_attribute, utils::checker::has_token};
+use crate::{
+    has_attribute,
+    utils::{checker::has_token, parser::parse_named_fields},
+};
 
 pub fn generate(input: &DeriveInput) -> TokenStream {
     if !has_token(&input.attrs, "autoval", "builder") {
@@ -12,13 +15,11 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
     let input_ident = &input.ident;
     let builder_ident = Ident::new(&format!("{input_ident}Builder"), input_ident.span());
 
-    let fields = match &input.data {
-        Data::Struct(data) => match &data.fields {
-            Fields::Named(named) => &named.named,
-            _ => return quote! { compile_error!("Builder supports only named fields") },
-        },
-        _ => return quote! { compile_error!("Builder supports only structs") },
-    };
+    let fields = parse_named_fields(input);
+    if fields.is_err() {
+        return fields.err().unwrap();
+    }
+    let fields = fields.ok().unwrap();
 
     let mut builder_fields: Vec<TokenStream> = Vec::new();
     let mut builder_setters: Vec<TokenStream> = Vec::new();
