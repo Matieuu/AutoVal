@@ -97,15 +97,15 @@ fn main() -> Result<(), String> {
 
 ## Next steps
 
-- [ ] Create main autoval attribute
+- [x] Create main autoval attribute
 - [ ] Implement creation of:
-    - [ ] Builder
+    - [x] Builder
     - [ ] Init
-    - [ ] Setter
-    - [ ] Getter
+    - [x] Setter
+    - [x] Getter
     - [ ] Validator
 - [ ] Implement field attributes:
-    - [ ] size
+    - [x] size
     - [ ] content
     - [ ] date
     - [ ] default
