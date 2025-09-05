@@ -20,8 +20,9 @@ use std::{
     collections::HashMap,
     time::{Date, Duration, OffsetDateTime, PrimitiveDateTime}
 };
-use autoval::prelude::*;
+use autoval::Autoval;
 
+#[derive(Autoval)]
 #[autoval(getters, setters, builder, init, validate)]
 struct User {
     // len argument in size attribute means string length
@@ -119,5 +120,5 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-auto-val = "0.1.0"
+autoval = "0.1.0"
 ```

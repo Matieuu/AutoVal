@@ -3,10 +3,10 @@
 version = 4
 
 [[package]]
-name = "auto-val"
+name = "autoval"
 version = "0.1.0"
 dependencies = [
- "auto-val",
+ "autoval",
  "proc-macro2",
  "quote",
  "syn",
