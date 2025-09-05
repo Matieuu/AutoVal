@@ -14,12 +14,7 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
 
     let input_ident = &input.ident;
     let builder_ident = Ident::new(&format!("{input_ident}Builder"), input_ident.span());
-
     let fields = parse_named_fields(input);
-    if fields.is_err() {
-        return fields.err().unwrap();
-    }
-    let fields = fields.ok().unwrap();
 
     let mut builder_fields: Vec<TokenStream> = Vec::new();
     let mut builder_setters: Vec<TokenStream> = Vec::new();
@@ -35,8 +30,8 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
         });
 
         builder_setters.push(quote! {
-            pub fn #field_ident(mut self, #field_ident: #field_type) -> Self {
-                self.#field_ident = ::core::option::Option::Some(#field_ident);
+            pub fn #field_ident(mut self, value: #field_type) -> Self {
+                self.#field_ident = ::core::option::Option::Some(value);
                 self
             }
         });

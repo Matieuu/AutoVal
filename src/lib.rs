@@ -1,4 +1,11 @@
-#![forbid(unsafe_code)]
+#![warn(clippy::all, clippy::pedantic)]
+#![forbid(
+    unsafe_code,
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::ok_expect,
+    clippy::err_expect
+)]
 #![deny(
     unsafe_code,
     unused_must_use,
@@ -6,7 +13,6 @@
     unused_variables,
     rust_2018_idioms
 )]
-#![warn(clippy::all, clippy::pedantic)]
 #![allow(clippy::module_name_repetitions)]
 #![cfg_attr(
     debug_assertions,
@@ -15,6 +21,7 @@
 #![cfg_attr(not(debug_assertions), deny(debug_assertions))]
 
 pub(crate) mod generators {
+    pub(crate) mod accessors;
     pub(crate) mod builder;
 }
 pub(crate) mod utils {
@@ -23,25 +30,37 @@ pub(crate) mod utils {
 }
 
 use proc_macro::TokenStream;
+use proc_macro_error2::{abort, proc_macro_error};
 use quote::quote;
 use syn::{DeriveInput, parse_macro_input};
 
-use crate::{generators::builder, utils::checker::has_attribute};
+use crate::{
+    generators::{accessors, builder},
+    utils::checker::has_attribute,
+};
 
 #[proc_macro_derive(
     Autoval,
     attributes(autoval, size, content, date, default, email, regex)
 )]
+#[proc_macro_error]
 pub fn autoval_macro(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
     if !has_attribute(&input.attrs, "autoval") {
-        return TokenStream::new();
+        let input_ident = &input.ident;
+        abort!(
+            input_ident,
+            "Struct {} with derive macro Autoval doesn't have autoval attribute",
+            input_ident
+        );
     }
 
+    let accessors_generated = accessors::generate(&input);
     let builder_generated = builder::generate(&input);
 
     quote! {
+        #accessors_generated
         #builder_generated
     }
     .into()

@@ -4,13 +4,19 @@ use syn::{Attribute, Meta, Type};
 pub fn is_string_type(ty: &Type) -> bool {
     match ty {
         Type::Path(tp) => {
-            let ident = &tp.path.segments.last().unwrap().ident;
-            ident == "String"
+            let ident = &tp.path.segments.last();
+            if let Some(ident) = ident {
+                ident.ident == "String"
+            } else {
+                false
+            }
         }
 
         Type::Reference(r) => {
-            if let Type::Path(tp) = &*r.elem {
-                tp.path.segments.last().unwrap().ident == "str"
+            if let Type::Path(tp) = &*r.elem
+                && let Some(segment) = tp.path.segments.last()
+            {
+                segment.ident == "str"
             } else {
                 false
             }
@@ -22,23 +28,27 @@ pub fn is_string_type(ty: &Type) -> bool {
 
 pub fn is_numeric_type(ty: &Type) -> bool {
     if let Type::Path(typepath) = &ty {
-        let ident = &typepath.path.segments.last().unwrap().ident;
-        matches!(
-            ident.to_string().as_str(),
-            "u8" | "u16"
-                | "u32"
-                | "u64"
-                | "u128"
-                | "usize"
-                | "i8"
-                | "i16"
-                | "i32"
-                | "i64"
-                | "i128"
-                | "isize"
-                | "f32"
-                | "f64"
-        )
+        let ident = typepath.path.segments.last();
+        if let Some(ident) = ident {
+            matches!(
+                ident.ident.to_string().as_str(),
+                "u8" | "u16"
+                    | "u32"
+                    | "u64"
+                    | "u128"
+                    | "usize"
+                    | "i8"
+                    | "i16"
+                    | "i32"
+                    | "i64"
+                    | "i128"
+                    | "isize"
+                    | "f32"
+                    | "f64"
+            )
+        } else {
+            false
+        }
     } else {
         false
     }
