@@ -23,6 +23,7 @@
 pub(crate) mod generators {
     pub(crate) mod accessors;
     pub(crate) mod builder;
+    pub(crate) mod init;
 }
 pub(crate) mod utils {
     pub(crate) mod checker;
@@ -35,8 +36,8 @@ use quote::quote;
 use syn::{DeriveInput, parse_macro_input};
 
 use crate::{
-    generators::{accessors, builder},
-    utils::checker::has_attribute,
+    generators::{accessors, builder, init},
+    utils::parser::parse_attribute,
 };
 
 #[proc_macro_derive(
@@ -47,7 +48,7 @@ use crate::{
 pub fn autoval_macro(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
 
-    if !has_attribute(&input.attrs, "autoval") {
+    if parse_attribute(&input.attrs, "autoval").is_none() {
         let input_ident = &input.ident;
         abort!(
             input_ident,
@@ -58,10 +59,12 @@ pub fn autoval_macro(input: TokenStream) -> TokenStream {
 
     let accessors_generated = accessors::generate(&input);
     let builder_generated = builder::generate(&input);
+    let init_generated = init::generate(&input);
 
     quote! {
         #accessors_generated
         #builder_generated
+        #init_generated
     }
     .into()
 }

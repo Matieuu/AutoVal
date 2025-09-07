@@ -2,10 +2,7 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{Data, DeriveInput, Fields, Ident};
 
-use crate::{
-    has_attribute,
-    utils::{checker::has_token, parser::parse_named_fields},
-};
+use crate::utils::{checker::has_token, parser::parse_named_fields};
 
 pub fn generate(input: &DeriveInput) -> TokenStream {
     if !has_token(&input.attrs, "autoval", "builder") {

@@ -100,7 +100,7 @@ fn main() -> Result<(), String> {
 - [x] Create main autoval attribute
 - [ ] Implement creation of:
     - [x] Builder
-    - [ ] Init
+    - [x] Init
     - [x] Setter
     - [x] Getter
     - [ ] Validator

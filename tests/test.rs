@@ -1,10 +1,11 @@
 use autoval::Autoval;
 
 #[derive(Autoval)]
-#[autoval(builder, setters)]
+#[autoval(builder, setters, init)]
 struct User {
     name: String,
     email: Option<String>,
+    #[default("20u8")]
     age: u8,
 }
 
@@ -34,4 +35,10 @@ pub fn testing() {
         "example@example.com"
     );
     assert_eq!(user.age(), &16);
+
+    let user = User::new(String::from("Matieuu"));
+
+    assert_eq!(user.name.as_str(), "Matieuu");
+    assert_eq!(user.email.is_none(), true);
+    assert_eq!(user.age, 20);
 }

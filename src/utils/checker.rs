@@ -54,10 +54,6 @@ pub fn is_numeric_type(ty: &Type) -> bool {
     }
 }
 
-pub fn has_attribute(attrs: &[Attribute], name: &str) -> bool {
-    attrs.iter().any(|attr| attr.path().is_ident(name))
-}
-
 pub fn has_token(attrs: &[Attribute], attr_name: &str, token_name: &str) -> bool {
     for attr in attrs {
         if attr.path().is_ident(attr_name)
