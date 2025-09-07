@@ -25,7 +25,7 @@ pub fn testing() {
     assert_eq!(user.age, 20);
 
     user.set_name(String::from("Matusz"));
-    user.set_email(Some(String::from("example@example.com")));
+    user.set_email(String::from("example@example.com"));
     user.set_age(16);
 
     assert_eq!(user.name().as_str(), "Matusz");
