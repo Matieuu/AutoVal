@@ -27,7 +27,7 @@ use autoval::Autoval;
 struct User {
     // len argument in size attribute means string length
     #[size(20 > len > 3)] // self explained - name len() between 3 and 20
-    #[regex = r#"^[A-Z]\w+$"#] // regex that name should match
+    #[regex(r#"^[A-Z]\w+$"#)] // regex that name should match
     // Instead one could use #[content(capitalize)] if wanted to make name capitalized always, no matter what letter cases are given
     #[content(notblank)] // content of the name cannot be blank
     name: String,
@@ -54,12 +54,12 @@ struct User {
     birthday: OffsetDateTime,
 
     #[date(val >= now)] // checks if value is in future or now
-    #[default = "Option::None"]
+    #[default("Option::None")]
     deactivate_at: Option<Date>,
 
     subscription_start: PrimitiveDateTime,
 
-    #[default = "Duration::week(1)"]
+    #[default("Duration::week(1)")]
     // if during Builder value is not specified then Builder uses default value
     // Init now takes this parameter as Optional<_> and given None uses default value
     subscription_duration: Duration,
@@ -78,16 +78,18 @@ fn main() -> Result<(), String> {
         .subscription_start(datetime!(2025-09-05 13:00))
         .build()?; // here validation starts working
 
-    let user = User::new(UserInit {
-        name: String::from("Matieuu"),
-        email: "test@example.com",
-        age: 20,
-        hobbies: vec![Hobby { "learning languages" }, Hobby { "playing games" }],
-        friends: map! { "Alone" => Hobby { .. } },
-        birthday: datetime!(2005-08-16 5:00 UTC),
-        subscription_start: datetime!(2025-09-05 13:00),
-        ..Default::default()
-    })?;
+    let user = User::new(
+        String::from("Matieuu"),            // name as first required arg
+                                            // email is optional so None is set
+        20,                                 // age as second required arg
+        vec![Hobby { "learning languages" }, Hobby { "playing games" }],
+                                            // hobbies as third required arg
+        map! { "Alone" => Hobby { .. } },   // friends as fourth required arg
+        datetime!(2005-08-16 5:00 UTC),     // birthday as fifth required arg
+                                            // deactivate_at has default value set
+        datetime!(2025-09-05 13:00),        // subscription_start as last required arg
+                                            // subscription_duration has default value set
+    )?;
 
     Ok(())
 }
