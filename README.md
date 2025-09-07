@@ -116,6 +116,13 @@ fn main() -> Result<(), String> {
 
 ---
 
+## Future plans
+
+- Object parsers with macros
+- sea_orm and diesel integration
+
+--
+
 ## Instalation
 
 Add to `Cargo.toml`:
