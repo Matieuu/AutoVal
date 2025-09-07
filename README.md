@@ -105,7 +105,7 @@ fn main() -> Result<(), String> {
     - [x] Getter
     - [ ] Validator
 - [ ] Implement field attributes:
-    - [x] size
+    - [ ] size
     - [ ] content
     - [ ] date
     - [ ] default
