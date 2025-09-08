@@ -13,8 +13,7 @@ struct User {
 pub fn testing() {
     let user = User::builder()
         .name(String::from("Matieuu"))
-        .email(Some(String::from("test@example.com")))
-        .age(20)
+        .email(String::from("test@example.com"))
         .build();
 
     assert_eq!(user.is_ok(), true);

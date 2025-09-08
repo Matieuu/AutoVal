@@ -1,8 +1,15 @@
+use proc_macro_error2::abort;
 use proc_macro2::TokenStream;
 use quote::quote;
-use syn::{Data, DeriveInput, Fields, Ident};
+use syn::{Data, DeriveInput, Expr, Fields, Ident, Lit};
 
-use crate::utils::{checker::has_token, parser::parse_named_fields};
+use crate::{
+    parse_attribute,
+    utils::{
+        checker::has_token,
+        parser::{parse_named_fields, parse_optional_field},
+    },
+};
 
 pub fn generate(input: &DeriveInput) -> TokenStream {
     if !has_token(&input.attrs, "autoval", "builder") {
@@ -21,25 +28,67 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
     for field in fields {
         let field_ident = &field.ident;
         let field_type = &field.ty;
+        let (parsed_type, is_optional) = parse_optional_field(field);
+        let default_attr = parse_attribute(&field.attrs, "default");
 
-        builder_fields.push(quote! {
-            #field_ident: ::core::option::Option<#field_type>
-        });
+        if is_optional {
+            builder_fields.push(quote! {
+                #field_ident: ::core::option::Option<#parsed_type>
+            });
 
-        builder_setters.push(quote! {
-            pub fn #field_ident(mut self, value: #field_type) -> Self {
-                self.#field_ident = ::core::option::Option::Some(value);
-                self
+            builder_setters.push(quote! {
+                pub fn #field_ident(mut self, value: #parsed_type) -> Self {
+                    self.#field_ident = ::core::option::Option::Some(value);
+                    self
+                }
+            });
+
+            build_fields.push(quote! {
+                #field_ident: self.#field_ident
+            });
+        } else {
+            builder_fields.push(quote! {
+                #field_ident: ::core::option::Option<#field_type>
+            });
+
+            builder_setters.push(quote! {
+                pub fn #field_ident(mut self, value: #field_type) -> Self {
+                    self.#field_ident = ::core::option::Option::Some(value);
+                    self
+                }
+            });
+
+            build_fields.push(quote! {
+                #field_ident: self.#field_ident.ok_or(concat!("Field `", stringify!(#field_ident), "` is missing"))?
+            });
+        }
+
+        if let Some(attr) = default_attr {
+            if let Ok(Lit::Str(lit)) = attr.parse_args() {
+                let expr: Result<Expr, _> = lit.parse();
+                if let Ok(expr) = expr {
+                    builder_init.push(quote! {
+                        #field_ident: ::core::option::Option::Some(#expr)
+                    });
+                } else {
+                    abort!(
+                        field,
+                        "Attribute `default` in field `{}` contains invalid expression",
+                        stringify!(field.ident)
+                    );
+                }
+            } else {
+                abort!(
+                    field,
+                    "Field `{}` has attribute `default` but has no default value",
+                    stringify!(field.ident)
+                );
             }
-        });
-
-        builder_init.push(quote! {
-            #field_ident: ::core::option::Option::None
-        });
-
-        build_fields.push(quote! {
-            #field_ident: self.#field_ident.ok_or(concat!("Field `", stringify!(#field_ident), "` is missing"))?
-        });
+        } else {
+            builder_init.push(quote! {
+                #field_ident: ::core::option::Option::None
+            });
+        }
     }
 
     quote! {
