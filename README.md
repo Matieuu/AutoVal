@@ -128,6 +128,7 @@ fn main() -> Result<(), String> {
 Add to `Cargo.toml`:
 
 ```toml
-[dependencies]
-autoval = "0.1.0"
+[dependencies.autoval]
+git = "https://github.com/Matieuu/AutoVal.git"
+tag = "v0.1.1"
 ```
