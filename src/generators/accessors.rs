@@ -33,6 +33,15 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
             abort!(field_ident, "Couldn't create setter function for field")
         };
 
+        let owned_getter_ident = if let Some(field_ident) = field_ident.as_ref() {
+            format_ident!("{}_owned", field_ident)
+        } else {
+            abort!(
+                field_ident,
+                "Couldn't create owned getter function for field"
+            )
+        };
+
         if is_optional {
             setter_funcs.push(quote! {
                 pub fn #setter_ident(&mut self, value: #parsed_type) {
@@ -50,6 +59,10 @@ pub fn generate(input: &DeriveInput) -> TokenStream {
         getter_funcs.push(quote! {
             pub fn #field_ident(&self) -> &#field_type {
                 &self.#field_ident
+            }
+
+            pub fn #owned_getter_ident(&self) -> #field_type {
+                self.#field_ident.clone()
             }
         });
     }

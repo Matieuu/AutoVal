@@ -27,13 +27,15 @@ pub fn testing() {
     user.set_email(String::from("example@example.com"));
     user.set_age(16);
 
-    assert_eq!(user.name().as_str(), "Matusz");
-    assert_eq!(user.email().is_some(), true);
+    assert_eq!(user.name(), &String::from("Matusz"));
+    assert_eq!(user.name_owned(), String::from("Matusz"));
+    assert_eq!(user.email(), &Some(String::from("example@example.com")));
     assert_eq!(
-        user.email().as_ref().unwrap().as_str(),
-        "example@example.com"
+        user.email_owned(),
+        Some(String::from("example@example.com"))
     );
     assert_eq!(user.age(), &16);
+    assert_eq!(user.age_owned(), 16);
 
     let user = User::new(String::from("Matieuu"));
 
