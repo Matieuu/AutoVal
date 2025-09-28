@@ -38,7 +38,7 @@ use quote::quote;
 use syn::{DeriveInput, parse_macro_input};
 
 use crate::{
-    generators::{accessors, builder, init},
+    generators::{accessors, builder, getters, init, setters},
     utils::parser::parse_attribute,
 };
 
@@ -52,7 +52,7 @@ pub fn test_macro(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(
     Accessors,
     attributes(
-        accessors, getters, setters, validator, size, content, date, default, email, regex
+        accessors, getters, setters, validator, size, content, date, email, regex
     )
 )]
 #[proc_macro_error]
@@ -64,12 +64,12 @@ pub fn accessors_macro(input: TokenStream) -> TokenStream {
 
 #[proc_macro_derive(
     Getters,
-    attributes(getters, validator, size, content, date, default, email, regex)
+    attributes(getters, validator, size, content, date, email, regex)
 )]
 #[proc_macro_error]
 pub fn getters_macro(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    let generated = quote! {};
+    let generated = getters::generate(&input);
     quote! { #generated }.into()
 }
 
@@ -77,7 +77,7 @@ pub fn getters_macro(input: TokenStream) -> TokenStream {
 #[proc_macro_error]
 pub fn setters_macro(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
-    let generated = quote! {};
+    let generated = setters::generate(&input);
     quote! { #generated }.into()
 }
 

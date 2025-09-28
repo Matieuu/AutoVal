@@ -20,10 +20,11 @@ use std::{
     collections::HashMap,
     time::{Date, Duration, OffsetDateTime, PrimitiveDateTime}
 };
-use autoval::Autoval;
+use autoval::{Accessors, Builder, Getters, Init, Setters};
 
-#[derive(Autoval)]
-#[autoval(getters, setters, builder, init, validate)]
+// #[derive(Getters, Setters)]
+#[derive(Accessors, Builder, Init)]
+#[validate]
 struct User {
     // len argument in size attribute means string length
     #[size(20 > len > 3)] // self explained - name len() between 3 and 20
@@ -130,5 +131,5 @@ Add to `Cargo.toml`:
 ```toml
 [dependencies.autoval]
 git = "https://github.com/Matieuu/AutoVal.git"
-tag = "v0.1.1"
+tag = "v0.2.0"
 ```
