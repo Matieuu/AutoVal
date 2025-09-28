@@ -12,10 +12,6 @@ use crate::{
 };
 
 pub fn generate(input: &DeriveInput) -> TokenStream {
-    if !has_token(&input.attrs, "autoval", "builder") {
-        return TokenStream::new();
-    }
-
     let input_ident = &input.ident;
     let builder_ident = Ident::new(&format!("{input_ident}Builder"), input_ident.span());
     let fields = parse_named_fields(input);

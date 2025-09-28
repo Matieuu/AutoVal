@@ -23,7 +23,9 @@
 pub(crate) mod generators {
     pub(crate) mod accessors;
     pub(crate) mod builder;
+    pub(crate) mod getters;
     pub(crate) mod init;
+    pub(crate) mod setters;
 }
 pub(crate) mod utils {
     pub(crate) mod checker;
@@ -40,31 +42,63 @@ use crate::{
     utils::parser::parse_attribute,
 };
 
+#[proc_macro_derive(Test)]
+pub fn test_macro(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    println!("{input:?}");
+    quote! {}.into()
+}
+
 #[proc_macro_derive(
-    Autoval,
-    attributes(autoval, size, content, date, default, email, regex)
+    Accessors,
+    attributes(
+        accessors, getters, setters, validator, size, content, date, default, email, regex
+    )
 )]
 #[proc_macro_error]
-pub fn autoval_macro(input: TokenStream) -> TokenStream {
+pub fn accessors_macro(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
+    let generated = accessors::generate(&input);
+    quote! { #generated }.into()
+}
 
-    if parse_attribute(&input.attrs, "autoval").is_none() {
-        let input_ident = &input.ident;
-        abort!(
-            input_ident,
-            "Struct {} with derive macro Autoval doesn't have autoval attribute",
-            input_ident
-        );
-    }
+#[proc_macro_derive(
+    Getters,
+    attributes(getters, validator, size, content, date, default, email, regex)
+)]
+#[proc_macro_error]
+pub fn getters_macro(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let generated = quote! {};
+    quote! { #generated }.into()
+}
 
-    let accessors_generated = accessors::generate(&input);
-    let builder_generated = builder::generate(&input);
-    let init_generated = init::generate(&input);
+#[proc_macro_derive(Setters, attributes(setters))]
+#[proc_macro_error]
+pub fn setters_macro(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let generated = quote! {};
+    quote! { #generated }.into()
+}
 
-    quote! {
-        #accessors_generated
-        #builder_generated
-        #init_generated
-    }
-    .into()
+#[proc_macro_derive(
+    Builder,
+    attributes(builder, validator, size, content, date, default, email, regex)
+)]
+#[proc_macro_error]
+pub fn builder_macro(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let generated = builder::generate(&input);
+    quote! { #generated }.into()
+}
+
+#[proc_macro_derive(
+    Init,
+    attributes(init, validator, size, content, date, default, email, regex)
+)]
+#[proc_macro_error]
+pub fn init_macro(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+    let generated = init::generate(&input);
+    quote! { #generated }.into()
 }

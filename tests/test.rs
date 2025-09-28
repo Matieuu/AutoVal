@@ -1,7 +1,6 @@
-use autoval::Autoval;
+use autoval::{Accessors, Builder, Init, Test};
 
-#[derive(Autoval)]
-#[autoval(builder, setters, init)]
+#[derive(Accessors, Builder, Init, Test)]
 struct User {
     name: String,
     email: Option<String>,
